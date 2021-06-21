@@ -1,59 +1,32 @@
 //#full-example
 package com.example
 
-
 import akka.actor.typed.ActorRef
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
-import com.example.OrderProcessor.Order
-import com.example.Shipper.Shipment
-import com.example.Notifier.Notification
+import com.example.Actor.Action
 
-object Notifier
+object Actor
 {
-  final case class Notification(orderId: Int, success: Boolean)
+  final case class Action(n: Int, id: Int, numberOfHopsTravelled: Int)
 
-  def apply(): Behavior[Notification] = Behaviors.receive {
-    (context, message ) =>
-
-    context.log.info(message.toString())
-
-    Behaviors.same
-  }
-}
-
-object Shipper
-{
-  final case class Shipment(orderId: Int, product: String, number: Int, replyTo: ActorRef[Notification])
-
-  def apply(): Behavior[Shipment] = Behaviors.receive {
-    (context, message ) =>
-
-    context.log.info(message.toString())
-    message.replyTo ! Notification(message.orderId, true)
-
-    Behaviors.same
-  }
-
-}
-
-object OrderProcessor
-{
-  final case class Order(id: Int, product: String, number: Int)
-
-  def apply(): Behavior[Order] = Behaviors.setup {
+  def apply(): Behavior[Action] = Behaviors.setup {
     context =>
 
-    val shipperRef = context.spawn(Shipper(), "shipper")
-    val notifierRef = context.spawn(Notifier(), "notifier")
+    val nextActorRef = context.spawn(Actor(), "actor")
 
     Behaviors.receiveMessage {
       message =>
 
       context.log.info(message.toString())
 
-      shipperRef ! Shipment(message.id, message.product, message.number, notifierRef)
+      val nextMessageId =  message.id+1
+
+      if (nextMessageId <= message.n)
+      {
+        nextActorRef ! Action(message.n, nextMessageId, message.numberOfHopsTravelled+1)
+      }
 
       Behaviors.same
     }
@@ -64,14 +37,14 @@ object OrderProcessor
 //#main-class
 object AkkaQuickstart extends App {
   //#actor-system
-  val processor: ActorSystem[OrderProcessor.Order] = ActorSystem(OrderProcessor(), "processor")
+  val processor: ActorSystem[Action] = ActorSystem(Actor(), "actor")
   //#actor-system
 
+  println("Please, input the n - number of actors:")
+  val n:Int = scala.io.StdIn.readInt()
+
   //#main-send-messages
-  processor ! Order(0, "Jacket", 2)
-  processor ! Order(1, "Sneakers", 3)
-  processor ! Order(2, "Socks", 4)
-  processor ! Order(3, "Umbrella", 5)
+  processor ! Action(n, 1, 0)
   //#main-send-messages
 }
 //#main-class

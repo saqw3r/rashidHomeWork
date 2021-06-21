@@ -4,23 +4,22 @@ package com.example
 import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
 
 import org.scalatest.wordspec.AnyWordSpecLike
-import com.example.Notifier.Notification
-import com.example.Shipper.Shipment
+import com.example.Actor.Action
 
 //#definition
 class AkkaQuickstartSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
 //#definition
 
-  "A Shipper" must {
-    //#test
-    "notify to notifier" in {
-      val replyProbe = createTestProbe[Notification]()
-      val underTest = spawn(Shipper())
-      underTest ! Shipment(123, "T-shirt", 100, replyProbe.ref)
-      replyProbe.expectMessage(Notification(123, true))
-    }
-    //#test
-  }
+  // "An Actor" must {
+  //   //#test
+  //   "call to another Actor" in {
+  //     val replyProbe = createTestProbe[Action]()
+  //     val underTest = spawn(Actor())
+  //     underTest ! Action(10, 1, 0)
+  //     replyProbe.expectMessage(Action(10, 10, 9))
+  //   }
+  //   //#test
+  // }
 
 }
 //#full-example
