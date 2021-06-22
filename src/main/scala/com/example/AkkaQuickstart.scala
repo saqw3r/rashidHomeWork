@@ -9,7 +9,7 @@ import com.example.Actor.Action
 
 object Actor
 {
-  final case class Action(n: Int, id: Int, numberOfHopsTravelled: Int)
+  final case class Action(messageBody: String, n: Int, id: Int, numberOfHopsTravelled: Int)
 
   def apply(): Behavior[Action] = Behaviors.setup {
     context =>
@@ -25,7 +25,11 @@ object Actor
 
       if (nextMessageId <= message.n)
       {
-        nextActorRef ! Action(message.n, nextMessageId, message.numberOfHopsTravelled+1)
+        nextActorRef ! Action(message.messageBody, message.n, nextMessageId, message.numberOfHopsTravelled+1)
+      }
+      else
+      {
+        println(message.numberOfHopsTravelled)
       }
 
       Behaviors.same
@@ -43,8 +47,11 @@ object AkkaQuickstart extends App {
   println("Please, input the n - number of actors:")
   val n:Int = scala.io.StdIn.readInt()
 
+  println("Please, input the message for sending:")
+  val messageBody:String = scala.io.StdIn.readLine()
+
   //#main-send-messages
-  processor ! Action(n, 1, 0)
+  processor ! Action(messageBody, n, 1, 0)
   //#main-send-messages
 }
 //#main-class
