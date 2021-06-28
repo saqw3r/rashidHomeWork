@@ -9,27 +9,38 @@ import com.example.Actor.Action
 
 object Actor
 {
-  final case class Action(messageBody: String, n: Int, id: Int, numberOfHopsTravelled: Int)
+  final case class Action(messageBody: String, n: Int, id: Int, numberOfHopsTravelled: Int, timesInMs: Array[(Int, Long)])
 
   def apply(): Behavior[Action] = Behaviors.setup {
     context =>
-
-    val nextActorRef = context.spawn(Actor(), "actor")
-
     Behaviors.receiveMessage {
       message =>
 
-      context.log.info(message.toString())
+      val currentTimeMs : Long = System.currentTimeMillis()
+
+      val outputLine = s"actor ${message.id}, message received ${currentTimeMs}"
+
+      //context.log.info(outputLine)
+      //println(outputLine)
 
       val nextMessageId =  message.id+1
 
-      if (nextMessageId <= message.n)
+      if (message.id <= message.n)
       {
-        nextActorRef ! Action(message.messageBody, message.n, nextMessageId, message.numberOfHopsTravelled+1)
+        val newTimesInMs: Array[(Int, Long)] = message.timesInMs :+ ((message.id, currentTimeMs))
+
+        val nextActorRef = context.spawn(Actor(), "actor")
+        
+        nextActorRef ! Action(message.messageBody, message.n, nextMessageId, message.numberOfHopsTravelled+1, newTimesInMs)
       }
       else
       {
-        println(message.numberOfHopsTravelled)
+        //println(message.numberOfHopsTravelled)
+        for (time <- message.timesInMs)
+        {
+          println(s"actor ${time._1}, message received ${time._2}")
+        }
+
       }
 
       Behaviors.same
@@ -51,7 +62,7 @@ object AkkaQuickstart extends App {
   val messageBody:String = scala.io.StdIn.readLine()
 
   //#main-send-messages
-  processor ! Action(messageBody, n, 1, 0)
+  processor ! Action(messageBody, n, 1, 0, Array[(Int,Long)]())
   //#main-send-messages
 }
 //#main-class
